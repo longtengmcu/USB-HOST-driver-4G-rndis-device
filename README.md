@@ -44,9 +44,9 @@ Stable network communication for three days, no more testing
 * Add the at command interface initialization 4G module, monitor the 4G module networking operation function
 * Optimize USB host protocol framework to support more kinds of USB devices
 
-## reference material
-[STM32 USB主机传输中断过程](https://blog.csdn.net/fhqlongteng/article/details/116898748?spm=1001.2014.3001.5501)
-[STM32 USB主机通信连接中断过程](https://blog.csdn.net/fhqlongteng/article/details/116897096?spm=1001.2014.3001.5501)
+## Reference material
+* [STM32 USB主机传输中断过程](https://blog.csdn.net/fhqlongteng/article/details/116898748?spm=1001.2014.3001.5501)
+* [STM32 USB主机通信连接中断过程](https://blog.csdn.net/fhqlongteng/article/details/116897096?spm=1001.2014.3001.5501)
 
 ## Author
 * fhqlongteng@163.com in Beijing China
