@@ -1,0 +1,307 @@
+
+msh />
+HPRT0:41803
+connet PCDET
+time:7092ms, connect 0
+HPRT0:21403
+connet PCDET
+time:7100ms, connect 1
+reset port
+HPRT0:2140d
+Port enable
+connet PENCHNG
+time:7511ms, connect 1
+reset port
+HPRT0:21109
+Port disable
+
+disconnet isr
+disconnect 1
+HPRT0:2140d
+Port enable
+
+connet PENCHNG
+time:7801ms, connect 0
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+msh />
+msh />
+msh />if
+ifconfig
+msh />ifconfig
+network interface device: u0 (Default)
+MTU: 1500
+MAC: ac 0c 29 a3 9b 6d 
+FLAGS: UP LINK_UP INTERNET_UP DHCP_DISABLE ETHARP BROADCAST
+ip address: 192.168.0.101
+gw address: 192.168.0.1
+net mask  : 255.255.255.0
+dns server #0: 8.8.8.8
+dns server #1: 0.0.0.0
+msh />
+msh />disconnet isr
+disconnect 1
+HPRT0:21008
+Port disable
+[RNDIS_DEV] rndis dev stop!
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:1412 mqtt_publish()... there is not enough memory space to record...
+rt_mb_recv returned with error = -1!
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:933 mqtt_yield()... mqtt not connect
+
+HPRT0:41803
+connet PCDET
+time:34138ms, connect 0
+HPRT0:21403
+connet PCDET
+time:34168ms, connect 1
+reset port
+HPRT0:2140d
+Port enable
+connet PENCHNG
+time:34557ms, connect 1
+reset port
+HPRT0:21109
+Port disable
+
+disconnet isr
+disconnect 1
+HPRT0:2140d
+Port enable
+
+连接中断开始
+connet PENCHNG
+time:34847ms, connect 0
+
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:463 mqtt_msg_handler_is_exist()...msg_handler->topic_filter: $sys/354804/FHQLONGTENG/dp/post/json/+, handler->topic_filter: $sys/354804/FHQLONGTE
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:463 mqtt_msg_handler_is_exist()...msg_handler->topic_filter: $sys/354804/FHQLONGTENG/cmd/#, handler->topic_filter: $sys/354804/FHQLONGTENG/cmd/#
+
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port disable
+[RNDIS_DEV] rndis dev stop!
+
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:1412 mqtt_publish()... there is not enough memory space to record...
+rt_mb_recv returned with error = -1!
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:933 mqtt_yield()... mqtt not connect
+
+
+再一次连接中断
+msh />
+msh />
+msh />
+msh />HPRT0:41003
+connet PCDET
+time:9366ms, connect 0
+HPRT0:21403
+connet PCDET
+time:9382ms, connect 1
+reset port
+HPRT0:2140d
+Port enable
+connet PENCHNG
+time:9785ms, connect 1
+reset port
+HPRT0:21109
+Port disable
+
+disconnet isr
+disconnect 1
+HPRT0:2140d
+Port enable
+
+
+connet PENCHNG
+time:10075ms, connect 0
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port disable（端口禁止）
+[RNDIS_DEV] rndis dev stop!
+
+msh />
+msh />
+再一次连接中断
+msh />HPRT0:41803
+connet PCDET
+time:24849ms, connect 0
+HPRT0:21403
+connet PCDET
+time:24950ms, connect 1
+reset port
+HPRT0:2140d
+Port enable
+connet PENCHNG
+time:25268ms, connect 1
+reset port
+HPRT0:21109
+Port disable
+
+disconnet isr
+disconnect 1
+HPRT0:2140d
+Port enable 
+
+connet PENCHNG
+time:25558ms, connect 0
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+msh />
+msh />
+
+if
+ifconfig
+msh />ifconfig
+network interface device: u0 (Default)
+MTU: 1500
+MAC: ac 0c 29 a3 9b 6d 
+FLAGS: UP LINK_UP INTERNET_UP DHCP_DISABLE ETHARP BROADCAST
+ip address: 192.168.0.101
+gw address: 192.168.0.1
+net mask  : 255.255.255.0
+dns server #0: 8.8.8.8
+dns server #1: 0.0.0.0
+msh />
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port disable
+[RNDIS_DEV] rndis dev stop
+
+HPRT0:41803
+connet PCDET
+time:35479ms, connect 0
+ reset port
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:1412 mqtt_publish()... there is not enough memory space to record...
+rt_mb_recv returned with error = -1!
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:933 mqtt_yield()... mqtt not connect
+sem 0 timeout!
+get device descriptor head failed
+reset port
+sem 0 timeout!
+get device descriptor head failed
+这里发生了读取描述符失败, 导致未进入端口状态变化成禁止中断，导致断开中断初始屏蔽，下次无法进入断开中断
+
+msh />
+msh />
+msh />
+msh />
+msh />
+HPRT0:41803
+connet PCDET
+time:73422ms, connect 1
+HPRT0:21403
+connet PCDET
+time:73461ms, connect 1
+
+
+L501上电后，USB主机的状态过程， 上电初始化过程中会经过4次USB连接才能成功
+msh />
+第一次连接
+HPRT0:21403
+connet PCDET
+time:696459ms, connect 0
+reset port
+HPRT0:2140d
+Port enable
+reset port time:0
+OUT 0 NAK
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port Disable
+
+sem 0 timeout!
+sem 0 timeout!
+set device address failed
+
+第二次连接
+HPRT0:21403
+connet PCDET
+time:704673ms, connect 0
+reset port
+HPRT0:2140d
+Port enable
+reset port time:0
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port Disable
+[RNDIS_DEV] rndis dev stop!
+
+第三次连接
+HPRT0:21403
+connet PCDET
+time:709190ms, connect 0
+
+msh />reset port
+HPRT0:2140d
+Port enable
+reset port time:0
+OUT 0 NAK
+
+msh />
+msh />
+disconnet isr
+disconnect 1
+HPRT0:21008
+Port Disable
+
+msh />
+msh />
+msh />
+msh />sem 0 timeout!
+
+msh />
+msh />sem 0 timeout!
+set device address failed
+
+msh />
+msh />
+msh />
+第四次连接 这里才连接成功
+HPRT0:21403
+connet PCDET
+time:717423ms, connect 0
+reset port
+HPRT0:2140d
+Port enable
+reset port time:0
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+msh />
+msh />
+msh />
+msh />
+msh />if
+ifconfig
+msh />ifconfig
+network interface device: u0 (Default)
+MTU: 1500
+MAC: ac 0c 29 a3 9b 6d 
+FLAGS: UP LINK_UP INTERNET_DOWN DHCP_DISABLE ETHARP BROADCAST
+ip address: 192.168.0.101
+gw address: 192.168.0.1
+net mask  : 255.255.255.0
+dns server #0: 8.8.8.8
+dns server #1: 0.0.0.0
+msh />ping www.qq.com
+ping: unknown host www.qq.com
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:463 mqtt_msg_handler_is_exist()...msg_handler->topic_filter: $sys/354804/FHQLONGTENG/dp/post/json/+, handler->topic_filter: $sys/354804/FHQLONGTE
+

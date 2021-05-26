@@ -1,0 +1,24 @@
+time:23309ms, connect 0
+time:23726ms, connect 1
+time:24013ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+
+time:175069ms, connect 0
+E:\ultrapower\tcpip_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:958 mqtt_yield_thread()..., mqtt reconnect timeout....
+OneNet mqtt reconnect once!
+E:\ultrapower\tcpip_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:592 mqtt_try_do_reconnect()... mqtt try connect result is -0x0004
+time:175517ms, connect 1
+time:175804ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+
+连接中断发生在代码中的位置
+connet PCDET
+time:49950ms, connect 0
+connet PENCHNG
+time:50367ms, connect 1
+connet PENCHNG
+time:50654ms, connect 1

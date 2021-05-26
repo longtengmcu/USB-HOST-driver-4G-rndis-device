@@ -1,0 +1,32 @@
+[
+ {
+  "path": "/packages/iot/webclient", 
+  "ver": "v2.1.2", 
+  "name": "WEBCLIENT"
+ }, 
+ {
+  "path": "/packages/iot/kawaii-mqtt", 
+  "ver": "latest", 
+  "name": "KAWAII_MQTT"
+ }, 
+ {
+  "path": "/packages/iot/cJSON", 
+  "ver": "v1.0.2", 
+  "name": "CJSON"
+ }, 
+ {
+  "path": "/packages/iot/netutils", 
+  "ver": "v1.1.0", 
+  "name": "NETUTILS"
+ }, 
+ {
+  "path": "/packages/security/tinycrypt", 
+  "ver": "latest", 
+  "name": "TINYCRYPT"
+ }, 
+ {
+  "path": "/packages/system/fal", 
+  "ver": "v0.4.0", 
+  "name": "FAL"
+ }
+]

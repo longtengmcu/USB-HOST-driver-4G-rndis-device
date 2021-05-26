@@ -1,0 +1,17 @@
+1、在公司进行TCP SERVER测试时，以1m间隔发送时，大约10分钟左右出现数据包传输发生卡顿，停止一会再发就正常了，时间长了还会再出现，最后一次测试出现tcp_server线程阻塞到sem3的信号量上面， sem2信号量未阻塞。 这两个信号量是由lwip内部创建出来的，此时网络不通了。
+      以太网低层驱动程序时，会经常打印receive frame faild,   这个打印是由于调用以太网驱动程序drv_eth.c 中第378行的HAL_ETH_GetReceivedFrame_IT返回的错误导致的---这个是正常的现象
+
+2、在家里测试1个小时，未复现问题。当第二次启动tcp server时，原来的端口号无法第二次绑定，即执行bind函数返回错误，只能换成其他端口号绑定。
+3、执行tcpserver --stop后，netstate中显示还有pcb未删除,所以导致下次不能使用原来的端口绑定，与2是同一问题
+       msh />netstate
+Active PCB states:
+#0 192.168.0.111:99 <==> 192.168.0.117:64735 snd_nxt 0x0097D97F rcv_nxt 0xBF94D8C3 state: FIN_WAIT_1
+Listen PCB states:
+TIME-WAIT PCB states:
+Active UDP PCB states:
+#0 4 0.0.0.0:68 <==> 0.0.0.0:67 
+以上这个问题是由于tcp连接在网络中断的情况下，半关闭造成的，lwip协议会在一定的超时时间后关闭这个连接，目前这个超时时间在哪里设置还没有找到，目前的超时时间有好几分钟，在网络连接上的情况下。网线断开的情况下，5分钟这个连接都不释放   修改TCP协议增加FIN_WAIT_1超时2ML即2分钟处理，已解决
+
+4、在执行link down后，应用层的函数调用select会快速的返回0，导致调用select的线程一直运行，没有延时，让其他线程无法运行。所以select函数返回0时增加延时，保证这个线程会抢占其他线程。
+5、执行dhcp 关闭后，再打开dhcp后，不会再次获得ip地址。修改ethernetif.c  165行的lwip_netdev_set_dhcp函数中增加执行dhcp_start, dhcp_stop函数解决
+6、从昨天到今天经过长时间通信后，以太网发送帧达到14万帧的时间，在保持TCP连接通信的情况，DHCP功能关闭，电脑给开发板发送数据，执行linkdown后，网络断开，TCP连接自动状态，再执行link up后，程序死机，电脑也无法ping通过开发板，重新上电没有复现此现象？

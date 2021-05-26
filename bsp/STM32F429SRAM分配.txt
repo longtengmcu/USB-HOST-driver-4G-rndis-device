@@ -1,0 +1,7 @@
+STM32F429共有四块SRAM
+CCM    : 0x10000000 -     长度64KB     只能供CPU 数据总线读写访问   这段内存只能用于存储数据使用
+SRAM1: 0x20000000 - 0x2001BFFF   长度112KB   AHB主控总线访问   支持以太网，USB DMA和CPU 并发访问
+SRAM2: 0x2001C000 - 0x2001FFFF   长度16KB    AHB主控总线访问
+SRAM1: 0x20020000 - 0x2002FFFF   长度64KB    AHB主控总线访问     支持以太网，USB DMA和CPU 并发访问
+
+eth mmc base: 0x40028100

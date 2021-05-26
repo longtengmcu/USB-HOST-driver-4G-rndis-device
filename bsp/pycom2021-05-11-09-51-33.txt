@@ -1,0 +1,307 @@
+
+
+
+total memory: 138308
+used memory : 23976
+maximum allocated memory: 29836
+
+
+ifconfig
+msh />ifconfig
+network interface device: u0 (Default)
+MTU: 1500
+MAC: ac 0c 29 a3 9b 6d 
+FLAGS: UP LINK_DOWN INTERNET_DOWN DHCP_DISABLE ETHARP BROADCAST
+ip address: 192.168.0.101
+gw address: 192.168.0.1
+net mask  : 255.255.255.0
+dns server #0: 8.8.8.8
+dns server #1: 0.0.0.0
+
+
+connet PCDET
+time:53228597ms, connect 0
+
+connet PENCHNG
+time:53229053ms, connect 1
+connet PENCHNG
+time:53229340ms, connect 1
+OUT 0 NAK
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:958 mqtt_yield_thread()..., mqtt reconnect timeout....
+[32m[I/OneNet] OneNet mqtt reconnect once!
+
+[0m
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:592 mqtt_try_do_reconnect()... mqtt try connect result is -0x0004
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:958 mqtt_yield_thread()..., mqtt reconnect timeout....
+[32m[I/OneNet] OneNet mqtt reconnect once!
+
+[0m
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:592 mqtt_try_do_reconnect()... mqtt try connect result is -0x0004
+disconnet
+disconnect 1
+
+connet PCDET
+time:53236813ms, connect 0
+
+sem 0 timeout!
+get full configuration descriptor failed
+
+这里发生了获取配置描述符失败， 从这里之后未发生断开中断，导致连接状态变量为1，后面发生连接中断后，无法执行具体的操作
+
+
+connet PCDET
+time:53241274ms, connect 1
+
+msh />sem 0 timeout!
+get device descriptor head failed
+
+
+再次插入入，还是不发生断开中断
+connet PCDET
+time:53249415ms, connect 1
+
+
+
+这里再次插入后，只发生2次连接中断，断开后不发生断开中断
+connet PCDET
+time:53589922ms, connect 1
+connet PCDET
+time:53589926ms, connect 1
+
+这里再次插入后，只发生2次连接中断，断开后不发生断开中断
+connet PCDET
+time:53646859ms, connect 1
+connet PCDET
+time:53646863ms, connect 1
+
+
+
+第二次测试复现出来错误---通过给L501模块设备进行上电2次复现
+
+connet PCDET
+time:38387ms, connect 0
+
+connet PENCHNG
+time:38841ms, connect 1
+OUT 0 NAK
+
+disconnet
+disconnect 1
+
+
+sem 0 timeout!
+set device address failed
+
+connet PCDET
+time:46604ms, connect 0
+connet PENCHNG
+time:47055ms, connect 1
+connet PENCHNG
+time:47342ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+disconnet
+disconnect 1
+[RNDIS_DEV] rndis dev stop!
+
+
+connet PCDET
+time:51076ms, connect 0
+connet PENCHNG
+time:51493ms, connect 1
+connet PENCHNG
+time:51779ms, connect 1
+OUT 0 NAK
+
+msh />disconnet
+disconnect 1
+
+
+msh />sem 0 timeout!
+
+
+connet PCDET
+time:59309ms, connect 0
+sem 0 timeout!
+get configuration descriptor head failed
+
+connet PENCHNG
+time:62276ms, connect 1
+connet PENCHNG
+time:62563ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+msh />disconnet
+disconnect 1
+
+
+connet PCDET
+time:131359ms, connect 0
+connet PENCHNG
+time:131777ms, connect 1
+connet PENCHNG
+time:132063ms, connect 1
+OUT 0 NAK
+
+disconnet
+disconnect 1
+
+
+connet PCDET
+time:139572ms, connect 0
+
+sem 0 timeout!
+get full configuration descriptor failed
+这里发生了读取配置描述符失败后，后面就只发生连接中断，不再发生断开中断了
+
+connet PCDET
+time:144023ms, connect 1
+
+sem 0 timeout!
+get device descriptor head failed
+
+connet PCDET
+time:152263ms, connect 1
+
+
+USB设备正常的连接与断开的中断过程
+
+
+msh />ifconfig
+network interface device: u0 (Default)
+MTU: 1500
+MAC: ff ff ff ff ff ff 
+FLAGS: UP LINK_DOWN INTERNET_DOWN DHCP_DISABLE ETHARP BROADCAST
+ip address: 192.168.0.101
+gw address: 192.168.0.1
+net mask  : 255.255.255.0
+dns server #0: 8.8.8.8
+dns server #1: 0.0.0.0
+
+连接开始：
+connet PCDET
+time:150596ms, connect 0
+Port enable
+connet PENCHNG
+time:151014ms, connect 1
+Port disable
+
+
+sem 0 timeout!
+get device descriptor head failed
+
+
+disconnet
+disconnect 1
+
+
+connet PCDET
+time:176360ms, connect 0
+Port enable
+connet PENCHNG
+time:176777ms, connect 1
+Port disable
+Port enable
+connet PENCHNG
+time:177064ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+
+disconnet
+disconnect 1
+Port disable
+
+
+E:\TCPIP_over_usb\code\rtt-usb_host\bsp\stm32f429-apollo\packages\kawaii-mqtt-latest\mqttclient\mqttclient.c:592 mqtt_try_do_reconnect()... mqtt try connect result is -0x0004
+psr: 0xa0000000
+r00: 0xffffffff
+r01: 0x00000001
+r02: 0x00000000
+r03: 0x01000000
+r04: 0x00000004
+r05: 0x20014454
+r06: 0x2000c824
+r07: 0x00000000
+r08: 0xdeadbeef
+r09: 0xdeadbeef
+r10: 0xdeadbeef
+r11: 0xdeadbeef
+r12: 0x20011304
+ lr: 0x080257f3
+ pc: 0x00000010
+psp: 0x2000ca3c
+hard fault on thread: timer
+
+
+
+thread   pri  status      sp     stack size max used left tick  error
+-------- ---  ------- ---------- ----------  ------  ---------- ---
+rndis      7  suspend 0x00000104 0x00000600    16%   0x00000014 000
+mqtt       5  suspend 0x0000009c 0x00001000    21%   0x00000001 000
+tshell    20  suspend 0x000000f8 0x00000800    44%   0x00000003 000
+ntp_sync  26  suspend 0x00000074 0x00000600    52%   0x00000001 000
+sys_work  23  suspend 0x00000064 0x00000800    32%   0x00000008 000
+usbh       8  suspend 0x00000090 0x00001000    19%   0x00000011 000
+tcpip      6  suspend 0x000000b0 0x00000400    60%   0x0000000b 000
+etx        7  suspend 0x00000088 0x00000400    27%   0x00000002 000
+erx        7  suspend 0x00000088 0x00000400    33%   0x00000010 000
+tidle     31  ready   0x00000048 0x00000400    09%   0x0000000e 000
+timer      7  ready   0x00000164 0x00000200    69%   0x00000007 000
+main      10  suspend 0x00000130 0x00000800    55%   0x00000006 000
+usage fault:
+SCB_CFSR_UFSR:0x02 INVSTATE 
+psr: 0xdeadbeef
+r00: 0xfffffffd
+r01: 0x00000004
+r02: 0x20014454
+r03: 0x2000c824
+r04: 0x00000004
+r05: 0x20014454
+r06: 0x2000c824
+r07: 0x00000000
+r08: 0xdeadbeef
+r09: 0xdeadbeef
+r10: 0xdeadbeef
+r11: 0xdeadbeef
+r12: 0x00000000
+ lr: 0xdeadbeef
+ pc: 0xdeadbeef
+psp: 0x2000ca18
+hard fault on thread: timer
+
+
+中断中关闭屏蔽连接断开中断后的连接响应过程
+connet PCDET
+time:13402ms, connect 0
+disconnet      由于未屏蔽断开中断，导致一次连接中断产生
+disconnect 1
+connet PCDET
+time:13410ms, connect 0
+Port enable
+connet PENCHNG
+time:13819ms, connect 1
+Port disable
+Port enable
+connet PENCHNG
+time:14106ms, connect 1
+[RNDIS_DEV] rndis dev start!
+find usb device driver failed
+alloc pipe failed
+
+
+msh />
+msh />ping www.qq.com
+60 bytes from 183.194.238.19 icmp_seq=0 ttl=51 time=85 ms
+60 bytes from 183.194.238.19 icmp_seq=1 ttl=51 time=71 ms
+60 bytes from 183.194.238.19 icmp_seq=2 ttl=51 time=72 ms
+60 bytes from 183.194.238.19 icmp_seq=3 ttl=51 time=73 ms
+msh />disconnet
+disconnect 1
+Port disable
+[RNDIS_DEV] rndis dev stop!
