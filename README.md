@@ -1,6 +1,6 @@
 # STM32 USB HOST driver 4G rndis device #
 
-It use RT-Thread 3.1.3 operating system, MCU is the stm32F429, the board is the apollo STM32F429 evk. The 4G module model is L501 it designed by the Shang Hai mobiletek.
+It use RT-Thread 3.1.3 operating system, MCU is the stm32F429, the board is the apollo STM32F429 evk. The 4G module model is L501 it designed by the Shang Hai mobiletek. The project open used the IAR please.
 
 ## Overview ##
 
