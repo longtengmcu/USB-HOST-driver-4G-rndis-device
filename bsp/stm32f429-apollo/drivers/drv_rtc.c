@@ -38,8 +38,8 @@ rt_uint8_t RTC_Init(void)
     
     RTC_Handler.Instance=RTC;
     RTC_Handler.Init.HourFormat=RTC_HOURFORMAT_24;//RTC设置为24小时格式 
-    RTC_Handler.Init.AsynchPrediv=0X7F;           //RTC异步分频系数(1~0X7F)
-    RTC_Handler.Init.SynchPrediv=0XFF;            //RTC同步分频系数(0~7FFF)   
+    RTC_Handler.Init.AsynchPrediv=0x7F;           //RTC异步分频系数(1~0X7F)
+    RTC_Handler.Init.SynchPrediv=0xFF;            //RTC同步分频系数(0~7FFF)   
     RTC_Handler.Init.OutPut=RTC_OUTPUT_DISABLE;     
     RTC_Handler.Init.OutPutPolarity=RTC_OUTPUT_POLARITY_HIGH;
     RTC_Handler.Init.OutPutType=RTC_OUTPUT_TYPE_OPENDRAIN;
@@ -172,6 +172,10 @@ rt_err_t SetRTCTimeStamp(time_t time_stamp)
     RTC_TimeStruct.Seconds = p_tm->tm_sec ; 
     RTC_TimeStruct.Minutes = p_tm->tm_min ; 
     RTC_TimeStruct.Hours   = p_tm->tm_hour;
+    RTC_TimeStruct.TimeFormat = RTC_HOURFORMAT12_AM;
+    RTC_TimeStruct.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    RTC_TimeStruct.StoreOperation = RTC_STOREOPERATION_RESET;
+    
     RTC_DateStruct.Date    = p_tm->tm_mday;
     RTC_DateStruct.Month   = p_tm->tm_mon+1 ; 
     RTC_DateStruct.Year    = p_tm->tm_year-100;
