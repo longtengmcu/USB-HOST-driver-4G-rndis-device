@@ -557,7 +557,7 @@ rt_err_t rt_rndis_run(struct uhintf* intf)
     rndis->rndis_state = RNDIS_BUS_UNINITIALIZED;
 
     /*set config*/
-    ret = rt_usbh_set_configure(intf->device, 0);
+    ret = rt_usbh_set_configure(intf->device, 1);
     if(ret != RT_EOK)
     {
         RNDIS_DEV_PRINTF("set config faile!\n");
