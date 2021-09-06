@@ -45,6 +45,9 @@ static rt_err_t root_hub_ctrl(struct uhcd *hcd, rt_uint16_t port, rt_uint8_t cmd
         case PORT_FEAT_C_RESET:
             hcd->roothub->port_status[port-1] &= ~PORT_PRSC;
             break;
+        case PORT_FEAT_POWER:
+            hcd->ops->vbus_contorl(port, RT_FALSE);
+            break;    
         }
         break;
     case RH_SET_PORT_FEATURE:
@@ -66,6 +69,7 @@ static rt_err_t root_hub_ctrl(struct uhcd *hcd, rt_uint16_t port, rt_uint8_t cmd
             hcd->ops->reset_port(port);
             break;
         case PORT_FEAT_POWER:
+            hcd->ops->vbus_contorl(port, RT_TRUE);
             break;
         case PORT_FEAT_LOWSPEED:
             break;

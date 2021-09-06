@@ -128,7 +128,8 @@ struct uhcd_ops
     rt_err_t    (*reset_port)   (rt_uint8_t port);
     int         (*pipe_xfer)    (upipe_t pipe, rt_uint8_t token, void* buffer, int nbytes, int timeout);
     rt_err_t    (*open_pipe)    (upipe_t pipe);
-    rt_err_t    (*close_pipe)   (upipe_t pipe);  
+    rt_err_t    (*close_pipe)   (upipe_t pipe);
+    rt_err_t    (*vbus_contorl) (rt_uint8_t port, rt_uint8_t power);
 };
 typedef struct uhcd_ops* uhcd_ops_t;
 struct uhcd
