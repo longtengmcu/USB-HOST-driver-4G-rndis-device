@@ -1556,6 +1556,12 @@ static void HCD_RXQLVL_IRQHandler(HCD_HandleTypeDef *hhcd)
         }
         //rt_kprintf("IN %d RXQLVL:%d, PID:%d\n", ch_num, pktcnt, (USB_OTG_GRXSTSP_DPID & temp) >> 15);
       }
+      else
+      {
+         /*如果主机接收的包长为最大包长的整数倍，设备最后会发送一个0包长的数据数据表示数据发送完成，这里要对数据包状态进行变化，并且不再使能接收通道*/
+         hhcd->hc[ch_num].toggle_in ^= 1U;
+         //rt_kprintf("ZIN %d RXQLVL:%d, PID:%d\n", ch_num, pktcnt, (USB_OTG_GRXSTSP_DPID & temp) >> 15);     
+      }
       break;
 
     case GRXSTS_PKTSTS_DATA_TOGGLE_ERR:
