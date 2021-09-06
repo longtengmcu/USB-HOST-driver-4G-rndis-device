@@ -19,6 +19,11 @@
 
 #define RESPONSE_AVAILABLE              0x00000001
 
+/* rndis device power off time, unit:ms, 0:power off always */
+#ifndef RNDIS_DEV_POWER_OFF_TIME
+#define RNDIS_DEV_POWER_OFF_TIME      0
+#endif
+
 /* Remote NDIS version numbers */
 #define RNDIS_MAJOR_VERSION 1
 #define RNDIS_MINOR_VERSION 0
