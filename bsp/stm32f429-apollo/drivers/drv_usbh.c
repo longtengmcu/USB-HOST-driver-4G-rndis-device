@@ -91,8 +91,27 @@ void HAL_HCD_PortDisabled_Callback(HCD_HandleTypeDef *hhcd)
 static rt_err_t drv_reset_port(rt_uint8_t port)
 {
     RT_DEBUG_LOG(RT_DEBUG_USB, ("reset port\n"));
-    rt_kprintf("reset port\n");
     HAL_HCD_ResetPort(&stm32_hhcd_fs);
+    return RT_EOK;
+}
+
+static rt_err_t drv_vbus_control(rt_uint8_t port, rt_uint8_t power)
+{
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("vbus control\n"));
+    if(power == RT_TRUE)
+    {
+        /*open the Vbus and power up the usb device*/
+#ifdef USBH_USING_CONTROLLABLE_POWER
+        rt_pin_write(USBH_POWER_PIN, PIN_LOW);
+#endif    
+    }
+    else
+    {
+        /*close the Vbus and power off the usb device*/
+#ifdef USBH_USING_CONTROLLABLE_POWER
+        rt_pin_write(USBH_POWER_PIN, PIN_HIGH);
+#endif 
+    }
     return RT_EOK;
 }
 
@@ -255,6 +274,7 @@ static struct uhcd_ops _uhcd_ops =
     drv_pipe_xfer,
     drv_open_pipe,
     drv_close_pipe,
+    drv_vbus_control,
 };
 
 static rt_err_t stm32_hcd_init(rt_device_t device)

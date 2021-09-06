@@ -14,6 +14,12 @@
 
 #define OTG_FS_PORT 1
 
+#define USBH_USING_CONTROLLABLE_POWER
+#ifdef  USBH_USING_CONTROLLABLE_POWER
+
+#define USBH_POWER_PIN       46                    /*PB0  46*/
+#endif
+
 int stm_usbh_register(void);
 
 #endif
