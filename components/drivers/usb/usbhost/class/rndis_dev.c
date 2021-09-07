@@ -445,7 +445,7 @@ void rt_usbh_rndis_data_recv(void *pdata)
     while(1)
     {
         ret = rt_rndis_msg_data_recv(intf, device->rx_buf_ptr, RNDIS_ETH_BUFFER_LEN);
-        if(ret)     
+        if(ret > 0)     
         {
             pmsg = (rndis_packet_msg_t)device->rx_buf_ptr;
 
@@ -484,7 +484,8 @@ void rt_usbh_rndis_data_recv(void *pdata)
         }
         else
         {
-            RNDIS_DEV_PRINTF("Rndis deivce recv error:%d!\n", ret);    
+            RNDIS_DEV_PRINTF("Rndis deivce recv error:%d!\n", ret); 
+            rt_thread_mdelay(10);
         }
         
     }
