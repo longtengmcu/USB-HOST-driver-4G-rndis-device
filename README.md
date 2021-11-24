@@ -35,7 +35,7 @@ The USB host driver framework is modified according to RT thread's USB host fram
 
 
 ## Stability ##
-Stable network communication for three days, no more testing
+The network stability test is conducted on the actual product for a long time
 
 
 ## Future optimized functions ##
@@ -43,6 +43,8 @@ Stable network communication for three days, no more testing
 * Add the USB host channel dynamic allocation release function, 
 * Add the at command interface initialization 4G module, monitor the 4G module networking operation function
 * Optimize USB host protocol framework to support more kinds of USB devices
+* Optimize STM32F USB driver library
+
 
 ## Reference material
 * [STM32 USB主机传输中断过程](https://blog.csdn.net/fhqlongteng/article/details/116898748?spm=1001.2014.3001.5501)

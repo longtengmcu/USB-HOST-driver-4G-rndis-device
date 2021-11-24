@@ -171,7 +171,7 @@ rt_err_t rt_usbh_rndis_bulk_recv(struct uhintf* intf, rt_uint8_t* buffer, int nb
 
     /*send IN token and read data*/
     read_len = rt_usb_hcd_pipe_xfer(device->hcd, rndis->pipe_in, buffer, nbytes, timeout);
-    if(read_len > 0)
+    if(read_len >= 0)
     {
         return read_len;    
     }

@@ -30,8 +30,8 @@
 #define MAX_ADDR_LEN         6
 /* rndis device keepalive time 5000ms*/
 #define RNDIS_DEV_KEEPALIVE_TIMEOUT    5000
-
-#define  RNDIS_ETH_BUFFER_LEN   (sizeof(struct rndis_packet_msg) + USB_ETH_MTU + 14)
+/*should be the usb Integer multiple of maximum packet length  N*64*/
+#define  RNDIS_ETH_BUFFER_LEN   (sizeof(struct rndis_packet_msg) + USB_ETH_MTU + 42)
 struct rt_rndis_eth
 {
     /* inherit from ethernet device */
@@ -406,10 +406,12 @@ static rt_err_t rt_rndis_keepalive_msg(struct uhintf* intf)
 
     /*when the usb device run about 4hours, it maybe return RT_ERROR, so the next 
       keepalive query will return the last request id. 
-      solution: we donot check the request id equal only! zhaoshimin 20210518*/
+      solution: we donot check the request id equal only! zhaoshimin 20210518
+      fix this bug zhaoshimin because the low level usb driver bug 20211124*/
     if((ret == RT_EOK) && (recv_len == sizeof(cmplt)) &&
        (cmplt.MessageType == REMOTE_NDIS_KEEPALIVE_CMPLT) &&
-       (cmplt.Status == RNDIS_STATUS_SUCCESS))
+       (cmplt.Status == RNDIS_STATUS_SUCCESS) &&
+       (cmplt.RequestID == msg.RequestID))
     {
         
         ret =  RT_EOK;
@@ -654,6 +656,7 @@ rt_err_t rt_rndis_run(struct uhintf* intf)
 
     if(ret != RT_EOK)
     {
+        RNDIS_DEV_PRINTF("query the oid OID_GEN_SUPPORTED_LIST error!\n");
         goto __exit;
     }
 
@@ -886,6 +889,7 @@ __exit:
     }
     else
     {
+        RNDIS_DEV_PRINTF("rndis dev faile!\n");
         /*rndis device run error, power off the device, try it agin*/
         rt_rndis_dev_power(intf, RNDIS_DEV_POWER_OFF_TIME);
         

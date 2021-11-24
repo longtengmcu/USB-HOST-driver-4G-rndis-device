@@ -1298,7 +1298,12 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     }
     else
     {
-      /* ... */
+      /* this usb urb_state is idle, re-activate the channel. 
+         use the L501C 4D0103 test enter there, L501C 2B0402 no enter zhaoshimin 20211120*/
+      tmpreg = USBx_HC(ch_num)->HCCHAR;
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
+      tmpreg |= USB_OTG_HCCHAR_CHENA;
+      USBx_HC(ch_num)->HCCHAR = tmpreg;
     }
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_CHH);
     HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)ch_num, hhcd->hc[ch_num].urb_state);

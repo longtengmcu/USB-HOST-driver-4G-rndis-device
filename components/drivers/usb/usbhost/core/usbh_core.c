@@ -724,29 +724,7 @@ rt_err_t rt_usbh_get_endpoint_descriptor(uintf_desc_t intf_desc, int num,
     return -RT_EIO;
 }
 
-#if 0
-int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int timeout)
-{
 
-    rt_uint8_t * pbuffer = (rt_uint8_t *)buffer;
-    int  len = 0;
- 
-    RT_DEBUG_LOG(RT_DEBUG_USB,("pipe transform size: %d\n", nbytes));
-
-    len = hcd->ops->pipe_xfer(pipe, USBH_PID_DATA, pbuffer, nbytes, timeout);
-    if((len >=0) && (len <= nbytes))
-    {
-        
-        return len;
-    }
-    else
-    {
-        return 0;
-    }
-    
-    
-}
-#else
 int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int timeout)
 {
     rt_size_t remain_size;
@@ -756,7 +734,7 @@ int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int
 
     if(pipe->ep.bEndpointAddress & 0x80)
     {
-        /*control ep*/
+        /*IN ep*/
         len = hcd->ops->pipe_xfer(pipe, USBH_PID_DATA, buffer, nbytes, timeout);
         if((len >=0) && (len <= nbytes))
         {
@@ -765,12 +743,12 @@ int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int
         }
         else
         {
-            return 0;
+            return -1;
         }
     }
     else
     {
-    
+        /*OUT ep*/
         rt_uint8_t * pbuffer = (rt_uint8_t *)buffer;
         do
         {
@@ -783,7 +761,7 @@ int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int
             }
             else
             {
-                return 0;
+                return -1;
             }
         }while(remain_size > 0);
 
@@ -791,6 +769,6 @@ int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int
     }
     
 }
-#endif
+
 
 

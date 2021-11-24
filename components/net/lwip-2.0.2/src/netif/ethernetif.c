@@ -263,7 +263,7 @@ void lwip_netdev_netstat(struct netdev *netif)
 {
     extern void list_tcps(void);
     extern void list_udps(void);
-    uint32_t    tx_counter = 0;
+    uint32_t    counter = 0;
     rt_device_t eth_handle = RT_NULL;
 
 #ifdef RT_LWIP_TCP
@@ -274,9 +274,14 @@ void lwip_netdev_netstat(struct netdev *netif)
 #endif
     /*show net send frame counter */
     eth_handle = rt_device_find(netif->name);
-    if((eth_handle) && (RT_EOK == rt_device_control(eth_handle, NIOTCTL_GTXCOUNTER, &tx_counter)))
+    if((eth_handle) && (RT_EOK == rt_device_control(eth_handle, NIOTCTL_GTXCOUNTER, &counter)))
     {
-        rt_kprintf("net send frame counter:%d\n", tx_counter);    
+        rt_kprintf("send packet counter:%d\n", counter);    
+    }
+
+    if((eth_handle) && (RT_EOK == rt_device_control(eth_handle, NIOTCTL_GTXCOUNTER, &counter)))
+    {
+        rt_kprintf("recv packet counter:%d\n", counter);    
     }
 }
 #endif /* RT_LWIP_TCP || RT_LWIP_UDP */
