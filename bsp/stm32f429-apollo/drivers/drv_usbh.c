@@ -52,7 +52,8 @@ void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
 
 void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, uint8_t chnum, HCD_URBStateTypeDef urb_state)
 {
-    if(urb_state != URB_NOTREADY)
+    /*  when use the L501 4D0103 usb urb_state is idle, L501 2B0402 no enter zhaoshimin 20211120*/
+    if((urb_state != URB_NOTREADY) && (urb_state != URB_IDLE))
     {
         rt_sem_release(usb_urb_sem[chnum]);
     }
@@ -102,24 +103,174 @@ static rt_err_t drv_vbus_control(rt_uint8_t port, rt_uint8_t power)
     {
         /*open the Vbus and power up the usb device*/
 #ifdef USBH_USING_CONTROLLABLE_POWER
-        rt_pin_write(USBH_POWER_PIN, PIN_LOW);
+        rt_pin_write(USBH_POWER_PIN, PIN_HIGH);
 #endif    
     }
     else
     {
         /*close the Vbus and power off the usb device*/
 #ifdef USBH_USING_CONTROLLABLE_POWER
-        rt_pin_write(USBH_POWER_PIN, PIN_HIGH);
+        rt_pin_write(USBH_POWER_PIN, PIN_LOW);
 #endif 
     }
     return RT_EOK;
 }
+#if 1
+static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbytes, int timeouts)
+{
+    rt_int32_t tick = 0;
+    void *pusb_buffer = RT_NULL;
+    int   len = 0;
+    int   ret = 0;
+    HCD_URBStateTypeDef usb_state;
 
+    if(pipe->ep.bEndpointAddress & 0x80)
+    {
+        /*IN ep*/
+        
+        /* Because the USB bottom layer will set the receiving buffer to an integer multiple of the maximum packet length, 
+           so the length of the receiving buffer should be  converted to an integer multiple of the maximum packet length zhaoshimin 20211119 */
+        if((nbytes) && ((nbytes % pipe->ep.wMaxPacketSize) == 0))
+        {
+            pusb_buffer = buffer;
+        }
+        else
+        {
+            if(nbytes == 0)
+            {
+                len = pipe->ep.wMaxPacketSize;
+            }
+            else
+            {
+                len = (nbytes + pipe->ep.wMaxPacketSize - 1) / pipe->ep.wMaxPacketSize;
+                len = len * pipe->ep.wMaxPacketSize;
+            }
+
+            pusb_buffer = rt_malloc(len);
+            if(pusb_buffer == RT_NULL)
+            {
+                RT_DEBUG_LOG(RT_DEBUG_USB,
+                             ("drv_pipe_xfer malloc: %d faile\n", len));
+                return -1;
+            }
+        }
+    }
+    else
+    {
+        pusb_buffer = buffer;
+    }    
+
+    rt_sem_control(usb_urb_sem[pipe->pipe_index], RT_IPC_CMD_RESET, RT_NULL);     
+    HAL_HCD_HC_SubmitRequest(&stm32_hhcd_fs,
+                             pipe->pipe_index,
+                             (pipe->ep.bEndpointAddress & 0x80) >> 7,
+                             pipe->ep.bmAttributes,
+                             token,
+                             pusb_buffer,
+                             nbytes,
+                             0);
+
+    if(timeouts == 0)
+    {
+        tick = RT_WAITING_FOREVER;
+    }
+    else
+    {
+        tick = rt_tick_from_millisecond(timeouts);
+    }
+   
+    if(-RT_ETIMEOUT == rt_sem_take(usb_urb_sem[pipe->pipe_index], tick))
+    {
+        //rt_kprintf("sem %d timeout!\n", pipe->pipe_index);
+        HAL_HCD_HC_Halt(&stm32_hhcd_fs, pipe->pipe_index);
+        ret =  -RT_ETIMEOUT;
+        goto __exit;
+    }
+    if((pipe->ep.bEndpointAddress & 0x80) == 0)
+    {
+        /*OUT EP */
+        /*between twice usb out transfer, should add the less 1ms delay. 
+         if not next out transfer return NAK zhaoshimin 2021050 */
+        rt_thread_mdelay(1);
+    }
+    
+    if (!connect_status)
+    {
+        ret =  -RT_ERROR;
+        goto __exit;
+    }
+    
+    usb_state = HAL_HCD_HC_GetURBState(&stm32_hhcd_fs, pipe->pipe_index);
+    if (usb_state == URB_NOTREADY)
+    {
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("nak\n"));
+        if (pipe->ep.bmAttributes == USB_EP_ATTR_INT)
+        {
+            rt_thread_delay((pipe->ep.bInterval * RT_TICK_PER_SECOND / 1000) > 0 ? (pipe->ep.bInterval * RT_TICK_PER_SECOND / 1000) : 1);
+        }                 
+        
+    }
+    else if(usb_state == URB_STALL)
+    {
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("stall\n"));
+        pipe->status = UPIPE_STATUS_STALL;
+        if (pipe->callback != RT_NULL)
+        {
+            pipe->callback(pipe);
+        }
+        ret =  -RT_ERROR;
+    }
+    else if(usb_state == URB_ERROR)
+    {
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("error\n"));
+        pipe->status = UPIPE_STATUS_ERROR;
+        if (pipe->callback != RT_NULL)
+        {
+            pipe->callback(pipe);
+        }
+        ret =  -RT_ERROR;
+    }
+    else if(URB_DONE == usb_state)
+    {
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("ok\n"));
+        pipe->status = UPIPE_STATUS_OK;
+        if (pipe->callback != RT_NULL)
+        {
+            pipe->callback(pipe);
+        }
+        ret = HAL_HCD_HC_GetXferCount(&stm32_hhcd_fs, pipe->pipe_index);
+
+        if((ret > 0) && (pusb_buffer != buffer) && (pusb_buffer) && (buffer))
+        {
+            rt_memcpy(buffer, pusb_buffer, nbytes);
+            
+        }
+        
+    }
+    else
+    {
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("usb status:%d\n", usb_state));
+        
+        HAL_HCD_HC_Halt(&stm32_hhcd_fs, pipe->pipe_index);
+        ret =  -RT_ERROR;
+    }
+
+__exit:
+    if((pusb_buffer != buffer) && (pusb_buffer))
+    {
+        rt_free(pusb_buffer);
+        pusb_buffer = RT_NULL;
+    }    
+    return ret;
+}
+
+#else
 static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbytes, int timeouts)
 {
     rt_int32_t tick = 0;
 
-    rt_sem_control(usb_urb_sem[pipe->pipe_index], RT_IPC_CMD_RESET, RT_NULL);     
+    rt_sem_control(usb_urb_sem[pipe->pipe_index], RT_IPC_CMD_RESET, RT_NULL);  
+      
     HAL_HCD_HC_SubmitRequest(&stm32_hhcd_fs,
                              pipe->pipe_index,
                              (pipe->ep.bEndpointAddress & 0x80) >> 7,
@@ -210,6 +361,7 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
     HAL_HCD_HC_Halt(&stm32_hhcd_fs, pipe->pipe_index);
     return -RT_ERROR;
 }
+#endif
 
 static rt_uint16_t pipe_index = 0;
 static rt_uint8_t  drv_get_free_pipe_index(void)
