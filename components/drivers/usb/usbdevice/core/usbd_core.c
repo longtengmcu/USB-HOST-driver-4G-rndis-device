@@ -205,6 +205,7 @@ static rt_err_t _get_descriptor(struct udevice* device, ureq_t setup)
             else
             {
                 rt_usbd_ep0_set_stall(device);
+                //dcd_ep_set_stall(device->dcd, 0x80);
             }
             break;
         case USB_DESC_TYPE_OTHERSPEED:
@@ -721,13 +722,14 @@ static rt_err_t _vendor_request(udevice_t device, ureq_t setup)
 }
 static rt_err_t _dump_setup_packet(ureq_t setup)
 {
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("[\n"));
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("  setup_request : 0x%x\n",
+    rt_uint32_t tick = rt_tick_get();
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("[time:%d.%03d\n", tick/1000, tick%1000));
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("  setup_request : 0x%02x\n",
                                 setup->request_type));
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("  value         : 0x%x\n", setup->wValue));
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("  length        : 0x%x\n", setup->wLength));
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("  index         : 0x%x\n", setup->wIndex));
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("  request       : 0x%x\n", setup->bRequest));
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("  request       : 0x%02x\n", setup->bRequest));                            
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("  value         : 0x%04x\n", setup->wValue));
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("  index         : 0x%04x\n", setup->wIndex));
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("  length        : 0x%04x\n", setup->wLength));
     RT_DEBUG_LOG(RT_DEBUG_USB, ("]\n"));
 
     return RT_EOK;
@@ -1790,14 +1792,16 @@ rt_err_t rt_usbd_ep0_set_stall(udevice_t device)
 {
     RT_ASSERT(device != RT_NULL);
     
-    return dcd_ep_set_stall(device->dcd, 0);
+    dcd_ep_set_stall(device->dcd, EP0_IN_ADDR);
+    return dcd_ep_set_stall(device->dcd, EP0_OUT_ADDR);
 }
 
 rt_err_t rt_usbd_ep0_clear_stall(udevice_t device)
 {
     RT_ASSERT(device != RT_NULL);
     
-    return dcd_ep_clear_stall(device->dcd, 0);
+    dcd_ep_set_stall(device->dcd, EP0_IN_ADDR);
+    return dcd_ep_clear_stall(device->dcd, EP0_OUT_ADDR);
 }
 
 rt_err_t rt_usbd_ep_set_stall(udevice_t device, uep_t ep)
@@ -1808,6 +1812,7 @@ rt_err_t rt_usbd_ep_set_stall(udevice_t device, uep_t ep)
     RT_ASSERT(ep != RT_NULL);
     RT_ASSERT(ep->ep_desc != RT_NULL);  
 
+    
     ret = dcd_ep_set_stall(device->dcd, EP_ADDRESS(ep));
     if(ret == RT_EOK)
     {
@@ -1824,7 +1829,7 @@ rt_err_t rt_usbd_ep_clear_stall(udevice_t device, uep_t ep)
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(ep != RT_NULL);
     RT_ASSERT(ep->ep_desc != RT_NULL);
-
+    
     ret = dcd_ep_clear_stall(device->dcd, EP_ADDRESS(ep));
     if(ret == RT_EOK)
     {
