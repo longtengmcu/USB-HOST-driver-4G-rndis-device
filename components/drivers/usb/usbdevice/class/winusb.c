@@ -146,7 +146,27 @@ static rt_err_t _ep_out_handler(ufunction_t func, rt_size_t size)
 
 static rt_err_t _ep_in_handler(ufunction_t func, rt_size_t size)
 {
+    rt_uint32_t  request_size = 0;
     winusb_device_t winusb_device = (winusb_device_t)func->user_data;
+
+    request_size = winusb_device->ep_in->request.size;
+    RT_DEBUG_LOG(RT_DEBUG_USB, ("_ep_in_handler %d\n", request_size));
+    if ((request_size != 0) && ((request_size % EP_MAXPACKET(winusb_device->ep_in)) == 0))
+    {
+        /* don't have data right now. Send a zero-length-packet to
+         * terminate the transaction.
+         *
+         * FIXME: actually, this might not be the right place to send zlp.
+         * Only the rt_device_write could know how much data is sending. */
+
+        winusb_device->ep_in->request.buffer = RT_NULL;
+        winusb_device->ep_in->request.size = 0;
+        winusb_device->ep_in->request.req_type = UIO_REQUEST_WRITE;
+        rt_usbd_io_request(func->device, winusb_device->ep_in, &winusb_device->ep_in->request);
+
+        return RT_EOK;
+    }
+
     if(winusb_device->parent.tx_complete != RT_NULL)
     {
         winusb_device->parent.tx_complete(&winusb_device->parent, winusb_device->ep_in->buffer);
@@ -235,7 +255,7 @@ static rt_size_t win_usb_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_si
     winusb_device->ep_out->buffer = buffer;
     winusb_device->ep_out->request.buffer = buffer;
     winusb_device->ep_out->request.size = size;
-    winusb_device->ep_out->request.req_type = UIO_REQUEST_READ_FULL;
+    winusb_device->ep_out->request.req_type = UIO_REQUEST_READ_BEST;
     rt_usbd_io_request(((ufunction_t)dev->user_data)->device,winusb_device->ep_out,&winusb_device->ep_out->request);
     return size;
 }
