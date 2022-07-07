@@ -182,7 +182,7 @@ rt_err_t rt_usbh_attatch_instance(uinst_t device)
     {
         return ret;
     }
-    for(i=0; i<device->cfg_desc->bNumInterfaces; )
+    for(i=0; i < device->cfg_desc->bNumInterfaces; )
     {   
         /* get IAD descriptor through configuration descriptor */
         ret = rt_usbh_get_IAD_descriptor(device->cfg_desc, i, &iad_desc);
@@ -724,51 +724,34 @@ rt_err_t rt_usbh_get_endpoint_descriptor(uintf_desc_t intf_desc, int num,
     return -RT_EIO;
 }
 
-
+/**
+ * This function send or recv the data from USB driver.
+ *
+ * @param hcd ubhcd.
+ * @param pipe usb host pipe.
+ * @param buffer usb data buffer.
+ * @param nbytes usb data len.
+ * @param timeout usb send or receive timeout
+ * 
+ * @return the error code, RT_EOK on successfully.
+ */
 int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void* buffer, int nbytes, int timeout)
 {
-    rt_size_t remain_size;
-    rt_size_t send_size;
-    remain_size = nbytes;
     int  len = 0;
 
-    if(pipe->ep.bEndpointAddress & 0x80)
+    len = hcd->ops->pipe_xfer(pipe, USBH_PID_DATA, buffer, nbytes, timeout);
+    if((len >=0) && (len <= nbytes))
     {
-        /*IN ep*/
-        len = hcd->ops->pipe_xfer(pipe, USBH_PID_DATA, buffer, nbytes, timeout);
-        if((len >=0) && (len <= nbytes))
-        {
-            
-            return len;
-        }
-        else
-        {
-            return -1;
-        }
+        
+        return len;
     }
     else
     {
-        /*OUT ep*/
-        rt_uint8_t * pbuffer = (rt_uint8_t *)buffer;
-        do
-        {
-            RT_DEBUG_LOG(RT_DEBUG_USB,("pipe transform remain size,: %d\n", remain_size));
-            send_size = (remain_size > pipe->ep.wMaxPacketSize) ? pipe->ep.wMaxPacketSize : remain_size;
-            if(hcd->ops->pipe_xfer(pipe, USBH_PID_DATA, pbuffer, send_size, timeout) == send_size)
-            {
-                remain_size -= send_size;
-                pbuffer += send_size;
-            }
-            else
-            {
-                return -1;
-            }
-        }while(remain_size > 0);
-
-        return nbytes;
+        return -1;
     }
-    
+
 }
+
 
 
 

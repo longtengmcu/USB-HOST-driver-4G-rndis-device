@@ -361,7 +361,7 @@ rt_err_t rt_usbh_hub_reset_port(uhub_t hub, rt_uint16_t port)
     if(i < RT_USBH_RESET_PORT_TIMEOUT)
     {
        rt_usbh_hub_clear_port_feature(hub, port, PORT_FEAT_C_ENABLE);
-       rt_kprintf("reset port time:%d\n", i);
+       
     }
     
     /* clear port reset feature */
