@@ -1367,6 +1367,7 @@ HAL_StatusTypeDef USB_HostInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 
   if ((USBx->CID & (0x1U << 8)) != 0U)
   {
+    /*High speed USB, cid:0x1100    */
     if (cfg.speed == USB_OTG_SPEED_FULL)
     {
       /* Force Device Enumeration to FS/LS mode only */
@@ -1429,7 +1430,7 @@ HAL_StatusTypeDef USB_HostInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
 
   /* Enable interrupts matching to the Host mode ONLY */
   USBx->GINTMSK |= (USB_OTG_GINTMSK_PRTIM            | USB_OTG_GINTMSK_HCIM | \
-                    USB_OTG_GINTMSK_SOFM             | USB_OTG_GINTSTS_DISCINT | \
+                    USB_OTG_GINTSTS_DISCINT | \
                     USB_OTG_GINTMSK_PXFRM_IISOOXFRM  | USB_OTG_GINTMSK_WUIM);
 
   return HAL_OK;
@@ -1576,7 +1577,7 @@ uint32_t USB_GetCurrentFrame(USB_OTG_GlobalTypeDef *USBx)
   * @param  mps  Max Packet Size
   *          This parameter can be a value from 0 to32K
   * @retval HAL state
-  */
+  */ 
 HAL_StatusTypeDef USB_HC_Init(USB_OTG_GlobalTypeDef *USBx,
                               uint8_t ch_num,
                               uint8_t epnum,
@@ -1588,49 +1589,55 @@ HAL_StatusTypeDef USB_HC_Init(USB_OTG_GlobalTypeDef *USBx,
   HAL_StatusTypeDef ret = HAL_OK;
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t HCcharEpDir, HCcharLowSpeed;
+  uint32_t IntMask = 0;
 
   /* Clear old interrupt conditions for this host channel. */
   USBx_HC((uint32_t)ch_num)->HCINT = 0xFFFFFFFFU;
 
   /* Enable channel interrupts required for this transfer. */
+  IntMask = USB_OTG_HCINTMSK_XFRCM  |
+            USB_OTG_HCINTMSK_STALLM |
+            USB_OTG_HCINTMSK_TXERRM |
+            USB_OTG_HCINTMSK_DTERRM |
+            USB_OTG_HCINTMSK_AHBERR;
   switch (ep_type)
   {
     case EP_TYPE_CTRL:
     case EP_TYPE_BULK:
-      USBx_HC((uint32_t)ch_num)->HCINTMSK = USB_OTG_HCINTMSK_XFRCM  |
-                                            USB_OTG_HCINTMSK_STALLM |
-                                            USB_OTG_HCINTMSK_TXERRM |
-                                            USB_OTG_HCINTMSK_DTERRM |
-                                            USB_OTG_HCINTMSK_AHBERR |
-                                            USB_OTG_HCINTMSK_NAKM;
+      if ((USBx->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) != USB_OTG_GAHBCFG_DMAEN)
+      {
+        /*Dma disable, enable NAKM*/
+        IntMask |=  USB_OTG_HCINTMSK_NAKM; 
+      } 
 
       if ((epnum & 0x80U) == 0x80U)
       {
-        USBx_HC((uint32_t)ch_num)->HCINTMSK |= USB_OTG_HCINTMSK_BBERRM;
+        IntMask |= USB_OTG_HCINTMSK_BBERRM;
       }
       else
       {
         if ((USBx->CID & (0x1U << 8)) != 0U)
         {
-          USBx_HC((uint32_t)ch_num)->HCINTMSK |= (USB_OTG_HCINTMSK_NYET | USB_OTG_HCINTMSK_ACKM);
+          /*High speed USB CID:0x1100, Full speed USB CID:0x1200 */
+          IntMask |= (USB_OTG_HCINTMSK_NYET | USB_OTG_HCINTMSK_ACKM);
         }
       }
+      USBx_HC((uint32_t)ch_num)->HCINTMSK = IntMask;
       break;
 
     case EP_TYPE_INTR:
-      USBx_HC((uint32_t)ch_num)->HCINTMSK = USB_OTG_HCINTMSK_XFRCM  |
-                                            USB_OTG_HCINTMSK_STALLM |
-                                            USB_OTG_HCINTMSK_TXERRM |
-                                            USB_OTG_HCINTMSK_DTERRM |
-                                            USB_OTG_HCINTMSK_NAKM   |
-                                            USB_OTG_HCINTMSK_AHBERR |
-                                            USB_OTG_HCINTMSK_FRMORM;
 
+      if ((USBx->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) != USB_OTG_GAHBCFG_DMAEN)
+      {
+        /*Dma disable, enable NAKM*/
+        IntMask |=  USB_OTG_HCINTMSK_NAKM; 
+      }                                      
+      IntMask |= USB_OTG_HCINTMSK_FRMORM;
       if ((epnum & 0x80U) == 0x80U)
       {
-        USBx_HC((uint32_t)ch_num)->HCINTMSK |= USB_OTG_HCINTMSK_BBERRM;
+        IntMask |= USB_OTG_HCINTMSK_BBERRM;
       }
-
+      USBx_HC((uint32_t)ch_num)->HCINTMSK = IntMask;
       break;
 
     case EP_TYPE_ISOC:
@@ -1840,36 +1847,45 @@ uint32_t USB_HC_ReadInterrupt(USB_OTG_GlobalTypeDef *USBx)
   * @param  hc_num  Host Channel number
   *         This parameter can be a value from 1 to 15
   * @retval HAL state
-  */
+  */ 
 HAL_StatusTypeDef USB_HC_Halt(USB_OTG_GlobalTypeDef *USBx, uint8_t hc_num)
 {
   uint32_t USBx_BASE = (uint32_t)USBx;
   uint32_t hcnum = (uint32_t)hc_num;
   uint32_t count = 0U;
   uint32_t HcEpType = (USBx_HC(hcnum)->HCCHAR & USB_OTG_HCCHAR_EPTYP) >> 18;
+  uint32_t ChannelEna = (USBx_HC(hcnum)->HCCHAR & USB_OTG_HCCHAR_CHENA) >> 31;
+
+  if (((USBx->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) == USB_OTG_GAHBCFG_DMAEN) &&
+        (ChannelEna == 0U)) 
+  {
+    return HAL_OK;
+  }
 
   /* Check for space in the request queue to issue the halt. */
   if ((HcEpType == HCCHAR_CTRL) || (HcEpType == HCCHAR_BULK))
   {
     USBx_HC(hcnum)->HCCHAR |= USB_OTG_HCCHAR_CHDIS;
-
-    if ((USBx->HNPTXSTS & (0xFFU << 16)) == 0U)
+    if ((USBx->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) != USB_OTG_GAHBCFG_DMAEN)
     {
-      USBx_HC(hcnum)->HCCHAR &= ~USB_OTG_HCCHAR_CHENA;
-      USBx_HC(hcnum)->HCCHAR |= USB_OTG_HCCHAR_CHENA;
-      USBx_HC(hcnum)->HCCHAR &= ~USB_OTG_HCCHAR_EPDIR;
-      do
+      if ((USBx->HNPTXSTS & (0xFFU << 16)) == 0U)
       {
-        if (++count > 1000U)
+        USBx_HC(hcnum)->HCCHAR &= ~USB_OTG_HCCHAR_CHENA;
+        USBx_HC(hcnum)->HCCHAR |= USB_OTG_HCCHAR_CHENA;
+        USBx_HC(hcnum)->HCCHAR &= ~USB_OTG_HCCHAR_EPDIR;
+        do
         {
-          break;
+          if (++count > 1000U)
+          {
+            break;
+          }
         }
+        while ((USBx_HC(hcnum)->HCCHAR & USB_OTG_HCCHAR_CHENA) == USB_OTG_HCCHAR_CHENA);
       }
-      while ((USBx_HC(hcnum)->HCCHAR & USB_OTG_HCCHAR_CHENA) == USB_OTG_HCCHAR_CHENA);
-    }
-    else
-    {
-      USBx_HC(hcnum)->HCCHAR |= USB_OTG_HCCHAR_CHENA;
+      else
+      {
+        USBx_HC(hcnum)->HCCHAR |= USB_OTG_HCCHAR_CHENA;
+      }
     }
   }
   else

@@ -151,7 +151,8 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
 
   hhcd->State = HAL_HCD_STATE_BUSY;
 
-  /* Disable DMA mode for FS instance */
+  /* Disable DMA mode for FS instance for FS, when the usb high speed can use the dma*/
+  /* FS USBx->CID:0x1200 product ID */
   if ((USBx->CID & (0x1U << 8)) == 0U)
   {
     hhcd->Init.dma_enable = 0U;
@@ -1217,11 +1218,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
   }
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_XFRC) == USB_OTG_HCINT_XFRC)
   {
-    if (hhcd->Init.dma_enable != 0U)
-    {
-      hhcd->hc[ch_num].xfer_count = hhcd->hc[ch_num].xfer_len - \
-                                    (USBx_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ);
-    }
+
 
     hhcd->hc[ch_num].state = HC_XFRC;
     hhcd->hc[ch_num].ErrCnt = 0U;
@@ -1236,10 +1233,25 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     }
     else if (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR)
     {
-      USBx_HC(ch_num)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM;
+      
       hhcd->hc[ch_num].urb_state = URB_DONE;
-      hhcd->hc[ch_num].toggle_in ^= 1U;
-
+      if(hhcd->Init.dma_enable == 0)
+      {
+        USBx_HC(ch_num)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM;
+        hhcd->hc[ch_num].toggle_in ^= 1U;
+      }
+      else
+      {
+        uint32_t num_packets = (uint16_t)((hhcd->hc[ch_num].xfer_len + hhcd->hc[ch_num].max_packet - 1U) / hhcd->hc[ch_num].max_packet);
+        uint32_t has_sent_packets = num_packets - ((USBx_HC(ch_num)->HCTSIZ & USB_OTG_DIEPTSIZ_PKTCNT) >> USB_OTG_DIEPTSIZ_PKTCNT_Pos);
+        hhcd->hc[ch_num].xfer_count += hhcd->hc[ch_num].xfer_len - (USBx_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ);
+        if(has_sent_packets % 2 == 1)
+        {
+          USBx_HC(ch_num)->HCCHAR |= USB_OTG_HCCHAR_ODDFRM;
+          hhcd->hc[ch_num].toggle_in ^= 1U; 
+        }
+      }  
+      //rt_kprintf("IN %d URB_DONE recv:%d ,tgl_in:%d at interrupt!\n", ch_num, hhcd->hc[ch_num].xfer_count, hhcd->hc[ch_num].toggle_in);  
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
       hhcd->HC_NotifyURBChangeCallback(hhcd, (uint8_t)ch_num, hhcd->hc[ch_num].urb_state);
 #else
@@ -1260,8 +1272,20 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 
     if (hhcd->hc[ch_num].state == HC_XFRC)
     {
+      if(hhcd->Init.dma_enable)
+      {
+        /*use the dma, change the toggle in*/
+        uint32_t num_packets = (uint16_t)(((hhcd->hc[ch_num].xfer_len == 0 ? 1: hhcd->hc[ch_num].xfer_len) + 
+                                              hhcd->hc[ch_num].max_packet - 1U) / hhcd->hc[ch_num].max_packet);
+        uint32_t has_sent_packets = num_packets - ((USBx_HC(ch_num)->HCTSIZ & USB_OTG_DIEPTSIZ_PKTCNT) >> USB_OTG_DIEPTSIZ_PKTCNT_Pos);
+        hhcd->hc[ch_num].xfer_count += hhcd->hc[ch_num].xfer_len - (USBx_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ);
+        if(has_sent_packets % 2 == 1)
+        {
+          hhcd->hc[ch_num].toggle_in ^= 1U; 
+        }
+      }
       hhcd->hc[ch_num].urb_state  = URB_DONE;
-      //rt_kprintf("IN %d URB_DONE recv:%d\n", ch_num, hhcd->hc[ch_num].xfer_count);
+      //rt_kprintf("IN %d URB_DONE recv:%d, tgl_in:%d\n", ch_num, hhcd->hc[ch_num].xfer_count,hhcd->hc[ch_num].toggle_in);
     }
     else if (hhcd->hc[ch_num].state == HC_STALL)
     {
@@ -1295,6 +1319,7 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
       tmpreg |= USB_OTG_HCCHAR_CHENA;
       USBx_HC(ch_num)->HCCHAR = tmpreg;
+      //rt_kprintf("IN %d  Nak re acktive\n", ch_num);
     }
     else
     {
@@ -1368,8 +1393,10 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
 
   if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_AHBERR) == USB_OTG_HCINT_AHBERR)
   {
-    __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_AHBERR);
+
     __HAL_HCD_UNMASK_HALT_HC_INT(ch_num);
+    (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
+    __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_AHBERR);
   }
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_ACK) == USB_OTG_HCINT_ACK)
   {
@@ -1407,7 +1434,10 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_XFRC);
     hhcd->hc[ch_num].state = HC_XFRC;
-    hhcd->hc[ch_num].xfer_count = hhcd->hc[ch_num].xfer_len;
+    if(hhcd->Init.dma_enable == DISABLE)
+    {
+      hhcd->hc[ch_num].xfer_count = hhcd->hc[ch_num].xfer_len;
+    }
     //rt_kprintf("OUT %d XFRC\n", ch_num);
     
   }
@@ -1461,16 +1491,48 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     __HAL_HCD_MASK_HALT_HC_INT(ch_num);
     USBx->GINTMSK &= (~USB_OTG_GINTMSK_NPTXFEM);
     USBx->GINTMSK &= (~USB_OTG_GINTMSK_PTXFEM);
-    //rt_kprintf("OUT %d CHH\n", ch_num);
+    
 
     if (hhcd->hc[ch_num].state == HC_XFRC)
     {
       hhcd->hc[ch_num].urb_state  = URB_DONE;
       if ((hhcd->hc[ch_num].ep_type == EP_TYPE_BULK) ||
-          (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR))
+          (hhcd->hc[ch_num].ep_type == EP_TYPE_INTR) ||
+          (hhcd->hc[ch_num].ep_type == EP_TYPE_CTRL))
       {
-        hhcd->hc[ch_num].toggle_out ^= 1U;
+        if(hhcd->Init.dma_enable)
+        { 
+          /*DMA enable */
+          uint32_t num_packets = (uint16_t)(((hhcd->hc[ch_num].xfer_len == 0 ? 1: hhcd->hc[ch_num].xfer_len) + 
+                                              hhcd->hc[ch_num].max_packet - 1U) / hhcd->hc[ch_num].max_packet);
+
+          uint32_t count = (USBx_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); /* last send size */
+
+          if (count == hhcd->hc[ch_num].max_packet) {
+              hhcd->hc[ch_num].xfer_count += num_packets * hhcd->hc[ch_num].max_packet;
+          } else {
+              hhcd->hc[ch_num].xfer_count += (num_packets - 1) * hhcd->hc[ch_num].max_packet + count;
+          }
+
+          if(hhcd->hc[ch_num].ep_type != EP_TYPE_CTRL)
+          {
+            if(num_packets % 2 == 1)
+            {
+              hhcd->hc[ch_num].toggle_out ^= 1U;   
+            }
+          }
+           
+        }
+        else
+        {       
+          if(hhcd->hc[ch_num].ep_type != EP_TYPE_CTRL)
+          { 
+            hhcd->hc[ch_num].toggle_out ^= 1U;
+          }  
+        }  
       }
+
+      //rt_kprintf("OUT %d xfc:%d, tgl_out:%d\n", ch_num,hhcd->hc[ch_num].xfer_count, hhcd->hc[ch_num].toggle_out);
     }
     else if (hhcd->hc[ch_num].state == HC_NAK)
     {
@@ -1590,6 +1652,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
   uint32_t USBx_BASE = (uint32_t)USBx;
   __IO uint32_t hprt0, hprt0_dup;
 
+
   /* Handle Host Port Interrupts */
   hprt0 = USBx_HPRT0;
   hprt0_dup = USBx_HPRT0;
@@ -1602,6 +1665,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
   {
     if ((hprt0 & USB_OTG_HPRT_PCSTS) == USB_OTG_HPRT_PCSTS)
     {
+      
 #if (USE_HAL_HCD_REGISTER_CALLBACKS == 1U)
       hhcd->ConnectCallback(hhcd);
 #else
@@ -1630,6 +1694,7 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
         {
           (void)USB_InitFSLSPClkSel(hhcd->Instance, HCFG_48_MHZ);
         }
+        
       }
       else
       {
@@ -1665,6 +1730,8 @@ static void HCD_Port_IRQHandler(HCD_HandleTypeDef *hhcd)
 
   /* Clear Port Interrupts */
   USBx_HPRT0 = hprt0_dup;
+
+  
 }
 
 /**
