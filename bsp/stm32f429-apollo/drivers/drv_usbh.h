@@ -20,6 +20,8 @@
 #define USBH_POWER_PIN       46                    /*PB0  46*/
 #endif
 
+//#define DRV_USBH_USE_HS
+
 int stm_usbh_register(void);
 
 #endif
