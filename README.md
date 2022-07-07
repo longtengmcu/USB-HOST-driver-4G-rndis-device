@@ -45,6 +45,8 @@ The network stability test is conducted on the actual product for a long time
 * Optimize USB host protocol framework to support more kinds of USB devices
 * Optimize STM32F USB driver library
 
+## Driver ##
+* The stm32 usb drvier add the USB high speed port, It have the fast than use the Full speed port. You can open it by the define micro DRV_USBH_USE_HS in the rtconfig.h
 
 ## Reference material
 * [STM32 USB主机传输中断过程](https://blog.csdn.net/fhqlongteng/article/details/116898748?spm=1001.2014.3001.5501)
